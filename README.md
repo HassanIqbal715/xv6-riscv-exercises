@@ -18,6 +18,6 @@ Labs are found here under the labs section: https://pdos.csail.mit.edu/6.1810/20
 3. Create a program that reads from a text file, and prints all the numbers that are divisble by 6 or 7 and are present between these separators ".,/\t\n\r-". (Complete)
 4. Create a memory dump. (Complete)
 5. Create the linux find function. (Complete)
-6. Create the exect linux function.
+6. Create the exec linux function. (Complete)
 
 ### Week 3 TBD

@@ -1,8 +1,13 @@
 #include "kernel/types.h"
+#include "kernel/param.h"
 #include "user/user.h"
 #include "kernel/stat.h"
 #include "kernel/fs.h"
 #include "kernel/fcntl.h"
+
+#ifndef NULL
+#define NULL (void*) 0
+#endif
 
 char* fmtname(char *path) {
     static char buf[DIRSIZ+1];
@@ -19,7 +24,33 @@ char* fmtname(char *path) {
     return buf;
 }
 
-void find(char* path, char* strFind) {
+void handleExec(char* args[], char* path) {
+    int forkReturn = fork();
+
+    if (forkReturn == 0) {
+        // Child block
+        void* temp = args[0];
+        char* newArgs[MAXARG - 4]; // Max possible number of arguments
+        int i = 0;
+        while (temp != NULL) {
+            newArgs[i] = temp;
+            temp = args[++i];
+        }
+        if (i >= MAXARG - 5) {
+            return;
+        }
+        newArgs[i] = path; // The found file is inserted at the end
+        newArgs[i+1] = NULL; // NULL is placed after path to indicate the last element
+        exec(args[0], newArgs); // Thumbsup if it works and return if it doesn't
+    }
+    else {
+        // Parnet block
+        wait(NULL);
+    }
+}
+
+// My find function can now perform exec too!
+void find(char* path, char* strFind, int hasExec, char* args[]) {
     // printf("I'm sure you'll find it yourself :)\n");
 
     char buf[512], *p;
@@ -42,7 +73,10 @@ void find(char* path, char* strFind) {
     case T_DEVICE:
     case T_FILE:
         if (strcmp(fmtname(path), strFind) == 0) {
-            printf("%s\n", path);
+            if (hasExec == 1)
+                handleExec(args, path);
+            else
+                printf("%s\n", path);
         }
         break;
 
@@ -67,10 +101,11 @@ void find(char* path, char* strFind) {
                 continue;
             }
             
-            if (strcmp(fmtname(buf), ".") == 0 || strcmp(fmtname(buf), "..") == 0)
+            if (strcmp(fmtname(buf), ".") == 0 || 
+                strcmp(fmtname(buf), "..") == 0)
                 continue;
 
-            find(buf, strFind);
+            find(buf, strFind, hasExec, args);
         }
 
         break;
@@ -89,5 +124,26 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
 
-    find(argv[1], argv[2]);
+    // Please ignore all the conditional statements. I wrote this at 1am.
+    if (argc > 3) {
+        // If through some magic the user evades the actual 10 args check
+        if (argc > MAXARG - 1) {
+            printf("Too many arguments!\n");
+            exit(0);
+        }
+        
+        // -exec is present in the 3rd place just like we wanted!
+        if (strcmp(argv[3], "-exec") == 0) {
+            char* newArgs[MAXARG - 4];
+            int i = 0;
+            for (i = 4; i < argc; i++) {
+                newArgs[i - 4] = argv[i];      
+            }
+            newArgs[i] = NULL;
+            find(argv[1], argv[2], 1, newArgs);
+        }
+    }
+    else {
+        find(argv[1], argv[2], 0, NULL);
+    }
 }
