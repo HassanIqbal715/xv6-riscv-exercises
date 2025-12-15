@@ -132,18 +132,34 @@ int main(int argc, char* argv[]) {
             exit(0);
         }
         
-        // -exec is present in the 3rd place just like we wanted!
-        if (strcmp(argv[3], "-exec") == 0) {
-            char* newArgs[MAXARG - 4];
-            int i = 0;
-            for (i = 4; i < argc; i++) {
-                newArgs[i - 4] = argv[i];      
+        int hasExec = 0; // A boolean to check whether -exec flag exists or not
+
+        // Iterating through the arguments array to find -exec
+        int i;
+        for (i = 3; i < argc; i++) {
+            if (strcmp(argv[i], "-exec") == 0) { // -exec found
+                hasExec = 1;
+                break;
             }
-            newArgs[i] = NULL;
-            find(argv[1], argv[2], 1, newArgs);
+        }
+
+        // All the arguments after -exec flag will be stored here
+        char* newArgs[MAXARG - (i + 1)];
+        
+        // Extracting all the arguments after -exec flag
+        int j = 0;
+        for (j = i + 1; j < argc; j++) {
+            newArgs[j - (i + 1)] = argv[j];      
+        }
+        newArgs[j] = NULL;
+
+        // Calling find for all the arguments provided between path and -exec
+        for (int k = 2; k < i; k++) {
+            find(argv[1], argv[k], hasExec, hasExec == 1 ? newArgs : NULL);
         }
     }
     else {
+        // Simple find with only 2 arguments
         find(argv[1], argv[2], 0, NULL);
     }
 }
