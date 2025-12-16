@@ -20,4 +20,6 @@ Labs are found here under the labs section: https://pdos.csail.mit.edu/6.1810/20
 5. Create the linux find function. (Complete)
 6. Create exec flag for the find function. (Complete)
 
-### Week 3 TBD
+### Week 3 File System Exercises
+1. Large Files. File size that can consist of 65803 blocks.
+2. Create Symbolic Links.
