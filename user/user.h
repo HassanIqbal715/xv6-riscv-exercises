@@ -25,6 +25,7 @@ char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
 int mycall(int, int);
+int symlink(char*, char*);
 
 // ulib.c
 int stat(const char*, struct stat*);

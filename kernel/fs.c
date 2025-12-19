@@ -439,7 +439,47 @@ bmap(struct inode *ip, uint bn)
     brelse(bp);
     return addr;
   }
+  bn -= NINDIRECT; 
 
+  // bn is now bn -= (direct + indirect), so we can store for the rest of the
+  // blocks found beyond doubly indirection.
+  if (bn < NDINDIRECT) {
+    // Locate the doubly block
+    if((addr = ip->addrs[NDIRECT + 1]) == 0) {
+      addr = balloc(ip->dev);
+      if (addr == 0)
+        return 0;
+      ip->addrs[NDIRECT + 1] = addr;
+    }
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+
+    // Find the indirect block inside the doubly indirect
+    uint double_index = bn / NINDIRECT;
+    if((addr = a[double_index]) == 0) { // bit 0 meaning indirect block empty.
+      addr = balloc(ip->dev); // allocate the block
+      if(addr){
+        a[double_index] = addr; // store the address(now it tells that add is 1)
+        log_write(bp);
+      }
+    }
+    brelse(bp);
+
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+
+    // Find the data block inside the chosen indirect block
+    uint data_index = bn % NINDIRECT;
+    if((addr = a[data_index]) == 0) { // bit 0 meaning data block empty.
+      addr = balloc(ip->dev); // allocate the block
+      if(addr){ // Successfull allocation
+        a[data_index] = addr; // store the address found
+        log_write(bp); // log the result
+      }
+    }
+    brelse(bp);
+    return addr;
+  }
   panic("bmap: out of range");
 }
 

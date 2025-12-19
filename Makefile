@@ -124,6 +124,7 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 .PRECIOUS: %.o
 
 UPROGS=\
+	$U/_bigfile\
 	$U/_cat\
 	$U/_echo\
 	$U/_forktest\
@@ -148,6 +149,7 @@ UPROGS=\
 	$U/_sixseven\
 	$U/_memdump\
 	$U/_find\
+	$U/_symlinktest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
